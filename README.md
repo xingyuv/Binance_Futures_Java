@@ -8,3 +8,5 @@
 * Maven3.6.3
 
 * 除test做了汉化，并增加了部分v2的API，后期持续增加官方api
+
+* Gitee 地址： https://gitee.com/xingyu4j/binance_futures_java
