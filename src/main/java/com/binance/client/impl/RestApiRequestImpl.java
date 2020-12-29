@@ -616,6 +616,50 @@ class RestApiRequestImpl {
     }
 
     /**
+     * 用户强平单历史
+     *
+     * @param symbol    NO	交易对
+     * @param startTime NO	起始时间
+     * @param endTime   NO	结束时间,默认当前时间
+     * @param limit     NO	从endTime倒推算起的数据条数，默认值:100 最大值:1000
+     * @return 如果没有传 "autoCloseType", 强平单和ADL减仓单都会被返回
+     * 如果没有传"startTime", 只会返回"endTime"之前7天内的数据
+     */
+    RestApiRequest<List<LiquidationOrder>> getForceOrders(String symbol, Long startTime, Long endTime,
+                                                          Integer limit){
+        RestApiRequest<List<LiquidationOrder>> request = new RestApiRequest<>();
+        UrlParamsBuilder builder = UrlParamsBuilder.build()
+                .putToUrl("symbol", symbol)
+                .putToUrl("startTime", startTime)
+                .putToUrl("endTime", endTime)
+                .putToUrl("limit", limit);
+        request.request = createRequestByGetWithApikey("/fapi/v1/forceOrders", builder);
+
+        request.jsonParser = (jsonWrapper -> {
+            List<LiquidationOrder> result = new LinkedList<>();
+            JsonWrapperArray dataArray = jsonWrapper.getJsonArray("data");
+
+            dataArray.forEach((item) -> {
+                LiquidationOrder element = new LiquidationOrder();
+                element.setSymbol(item.getString("symbol"));
+                element.setPrice(item.getBigDecimal("price"));
+                element.setOrigQty(item.getBigDecimal("origQty"));
+                element.setExecutedQty(item.getBigDecimal("executedQty"));
+                element.setAveragePrice(item.getBigDecimal("averagePrice"));
+                element.setStatus(item.getString("status"));
+                element.setTimeInForce(item.getString("timeInForce"));
+                element.setType(item.getString("symbol"));
+                element.setSide(item.getString("side"));
+                element.setTime(item.getLong("time"));
+                result.add(element);
+            });
+
+            return result;
+        });
+        return request;
+    }
+
+    /**
      * 获取市场强平订单
      * 如果不提供symbol,返回全市场强平订单。
      *
